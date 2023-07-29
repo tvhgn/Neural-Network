@@ -1,3 +1,4 @@
 venv/
 notes.ipynb
-Neural Network/__pycache__/node.cpython-310.pyc
+Neural Network/__pycache__
+concrete_data.csv

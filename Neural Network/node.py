@@ -41,7 +41,7 @@ class Node:
             output (float): The output of the node.
 
         Raises:
-            RuntimeError: If the activation function is not 'relu'.
+            RuntimeError: If the activation function is not 'relu' or 'none'.
 
         """
         # General linear transformation output = sum of all x_i*w_i + b combinations
@@ -49,6 +49,11 @@ class Node:
         # Relu activation function
         if self.activation == 'relu':
             return max(0, lin_trans)
+        elif self.activation == 'none':
+            return lin_trans
         else:
             raise RuntimeError("Unsupported activation function.")
+        
+    def update_node():
+        pass
 
