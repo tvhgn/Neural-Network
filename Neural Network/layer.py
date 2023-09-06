@@ -1,32 +1,43 @@
-from node import Node
+from helpers import preprocess_data, data_generator
 
 import numpy as np
+import torch
 
-class NodeIssue(Exception):
-    pass
-
-class Layer:
-    def __init__(self, label, input_size, num_nodes, activation):
-        # Empty list for containing nodes and a separate list for their outputs
-        self.label = "Layer "+label
-        self.nodes = []
-        self.outputs = []
-        
-        # Create nodes
-        for _ in range(num_nodes):
-            node = Node(input_size, activation=activation)
-            self.nodes.append(node)
-            # self.outputs.append(node.compute_output(input_array))
-        # # Cast to numpy array
-        # self.outputs = np.asarray(self.outputs)
+class Layer():
+    def __init__(self, n_input, nodes, activation, label):
+        self.n_input = n_input
+        self.nodes = nodes
+        self.activation = activation
+        self.label = label
+        # Initializing weights and biases
+        lbound = -1/np.sqrt(n_input)
+        rbound = -lbound
+        self.weights = torch.tensor(np.random.uniform(lbound, rbound, n_input*nodes).reshape(n_input, nodes), requires_grad=True)
+        self.biases = torch.tensor(np.random.uniform(lbound, rbound, nodes).reshape(1, nodes), requires_grad=True)
+        self.prev_step_w = torch.empty_like(self.weights) * 0
+        self.prev_step_b = torch.empty_like(self.biases) * 0
     
-    def __repr__(self) -> str:
-        return f"Layer with {len(self.nodes)} nodes"
-        
+    def __repr__(self):
+        return f"{self.label} containing {self.nodes} nodes"
+    
     def f_propogate(self, input_array):
-        self.outputs = []
-        for i in range(len(self.nodes)):
-            self.outputs.append(self.nodes[i].compute_output(input_array))
-        return np.asarray(self.outputs)
+        # Checking input array datatype
+        if type(input_array) != torch.Tensor:
+            input_array = torch.tensor(input_array)
+        if input_array.dtype != torch.float64:
+            input_array = input_array.type(torch.float64)
+        # Calculate the linear output function 'z' using an input array and the weights/biases contained in this layer.
+        z = torch.mm(input_array, self.weights) + self.biases
+        # Calculate the activated output.
+        if self.activation.lower() == "tanh":
+            self.a = torch.tanh(z)
+        elif self.activation.lower() == "relu":
+            self.a = torch.relu(z)
+        elif self.activation.lower() == "sigmoid":
+            self.a = torch.sigmoid(z)
+        elif self.activation.lower() == 'none':
+            self.a = z
+        else:
+            raise RuntimeError("Activation function not recognized! Please try again.")
         
-    
+        return self.a
